@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Minus, Plus, ArrowLeft } from 'lucide-react';
-import { supabase, Product } from '../lib/supabase';
+import { mockProducts } from '../lib/mockProducts';
+import { getProductImage } from '../lib/productImages';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../lib/cart';
 
@@ -20,18 +21,26 @@ export default function ProductPage({ slug, onNavigate }: ProductPageProps) {
   }, [slug]);
 
   const loadProduct = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from('products')
-      .select('*')
-      .eq('slug', slug)
-      .maybeSingle();
+  setLoading(true);
+  
+  // Using mock data instead of Supabase
+  const foundProduct = mockProducts.find(p => p.slug === slug);
+  setProduct(foundProduct || null);
+  
+  /* Original Supabase code - commented out
+  const { data } = await supabase
+    .from('products')
+    .select('*')
+    .eq('slug', slug)
+    .maybeSingle();
 
-    if (data) {
-      setProduct(data);
-    }
-    setLoading(false);
-  };
+  if (data) {
+    setProduct(data);
+  }
+  */
+  
+  setLoading(false);
+};
 
   const handleAddToCart = async () => {
     if (product) {
@@ -75,19 +84,13 @@ export default function ProductPage({ slug, onNavigate }: ProductPageProps) {
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="aspect-square bg-gray-100 overflow-hidden">
-            {product.image_url ? (
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                <span className="text-sm">No image available</span>
-              </div>
-            )}
-          </div>
+         <div className="aspect-square bg-gray-100 overflow-hidden">
+          <img
+            src={getProductImage(product.slug)}
+            alt={product.name}
+            className="w-full h-full object-cover"
+            />
+        </div>
 
           <div className="flex flex-col">
             <h1 className="text-4xl font-light tracking-wide text-gray-900 mb-4">

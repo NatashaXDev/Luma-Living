@@ -1,6 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase, Product, CartItem } from '../lib/supabase';
-import { getSessionId } from '../lib/cart';
+import { Product } from '../lib/supabase';
+
+interface CartItem {
+  id: string;
+  product_id: string;
+  product: Product;
+  quantity: number;
+}
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -18,16 +24,9 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
+  // Load cart from memory on mount
   const loadCart = async () => {
-    const sessionId = getSessionId();
-    const { data, error } = await supabase
-      .from('cart_items')
-      .select('*, product:products(*)')
-      .eq('session_id', sessionId);
-
-    if (!error && data) {
-      setCartItems(data);
-    }
+    // Cart is already in state, nothing to load from external source
   };
 
   useEffect(() => {
@@ -35,24 +34,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addToCart = async (product: Product, quantity = 1) => {
-    const sessionId = getSessionId();
-
     const existingItem = cartItems.find(item => item.product_id === product.id);
 
     if (existingItem) {
-      await updateQuantity(existingItem.id, existingItem.quantity + quantity);
+      // Update existing item quantity
+      setCartItems(cartItems.map(item =>
+        item.product_id === product.id
+          ? { ...item, quantity: item.quantity + quantity }
+          : item
+      ));
     } else {
-      const { error } = await supabase
-        .from('cart_items')
-        .insert({
-          session_id: sessionId,
-          product_id: product.id,
-          quantity,
-        });
-
-      if (!error) {
-        await loadCart();
-      }
+      // Add new item
+      const newItem: CartItem = {
+        id: `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        product_id: product.id,
+        product: product,
+        quantity: quantity,
+      };
+      setCartItems([...cartItems, newItem]);
     }
   };
 
@@ -62,37 +61,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const { error } = await supabase
-      .from('cart_items')
-      .update({ quantity })
-      .eq('id', itemId);
-
-    if (!error) {
-      await loadCart();
-    }
+    setCartItems(cartItems.map(item =>
+      item.id === itemId ? { ...item, quantity } : item
+    ));
   };
 
   const removeFromCart = async (itemId: string) => {
-    const { error } = await supabase
-      .from('cart_items')
-      .delete()
-      .eq('id', itemId);
-
-    if (!error) {
-      await loadCart();
-    }
+    setCartItems(cartItems.filter(item => item.id !== itemId));
   };
 
   const clearCart = async () => {
-    const sessionId = getSessionId();
-    const { error } = await supabase
-      .from('cart_items')
-      .delete()
-      .eq('session_id', sessionId);
-
-    if (!error) {
-      setCartItems([]);
-    }
+    setCartItems([]);
   };
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { supabase, Product } from '../lib/supabase';
+import { Product } from '../lib/supabase';
+import { mockProducts } from '../lib/mockProducts';
+import { getProductImage } from '../lib/productImages';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../lib/cart';
 
@@ -16,17 +18,22 @@ export default function HomePage({ onNavigate }: HomePageProps) {
     loadFeaturedProducts();
   }, []);
 
-  const loadFeaturedProducts = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('*')
-      .eq('featured', true)
-      .limit(4);
+ const loadFeaturedProducts = async () => {
+  // Using mock data instead of Supabase
+  setFeaturedProducts(mockProducts.filter(p => p.featured));
+  
+  /* Original Supabase code - commented out
+  const { data } = await supabase
+    .from('products')
+    .select('*')
+    .eq('featured', true)
+    .limit(4);
 
-    if (data) {
-      setFeaturedProducts(data);
-    }
-  };
+  if (data) {
+    setFeaturedProducts(data);
+  }
+  */
+};
 
   const handleAddToCart = async (product: Product) => {
     await addToCart(product);
@@ -70,17 +77,13 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                   onClick={() => onNavigate('product', product.slug)}
                   className="aspect-square bg-gray-100 mb-4 overflow-hidden"
                 >
-                  {product.image_url ? (
+                  
                     <img
-                      src={product.image_url}
+                      src={getProductImage(product.slug)}
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span className="text-sm">No image</span>
-                    </div>
-                  )}
+              
                 </div>
                 <h3
                   onClick={() => onNavigate('product', product.slug)}

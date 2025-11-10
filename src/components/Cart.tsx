@@ -1,5 +1,6 @@
 import { X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { getProductImage } from '../lib/productImages';
 import { formatCurrency } from '../lib/cart';
 
 interface CartProps {
@@ -51,17 +52,11 @@ export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
                 return (
                   <div key={item.id} className="flex gap-4">
                     <div className="w-24 h-24 bg-gray-100 flex-shrink-0">
-                      {product.image_url ? (
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <span className="text-xs">No image</span>
-                        </div>
-                      )}
+                      <img
+                        src={getProductImage(product.slug)}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                       />
                     </div>
 
                     <div className="flex-1 min-w-0">

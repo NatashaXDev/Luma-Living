@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../lib/cart';
-import { supabase } from '../lib/supabase';
+import { getProductImage } from '../lib/productImages';
 
 interface CheckoutPageProps {
   onNavigate: (page: string, orderId?: string) => void;
@@ -258,7 +258,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                       <div className="w-20 h-20 bg-white">
                         {product.image_url ? (
                           <img
-                            src={product.image_url}
+                            src={getProductImage(product.slug)}
                             alt={product.name}
                             className="w-full h-full object-cover"
                           />

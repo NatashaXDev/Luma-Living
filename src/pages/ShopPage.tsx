@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { supabase, Product, Category } from '../lib/supabase';
+import { Product, Category } from '../lib/supabase';
+import { mockProducts } from '../lib/mockProducts';
+import { getProductImage } from '../lib/productImages';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../lib/cart';
 
@@ -29,19 +31,24 @@ export default function ShopPage({ onNavigate }: ShopPageProps) {
     }
   };
 
-  const loadProducts = async () => {
-    let query = supabase.from('products').select('*');
+const loadProducts = async () => {
+  // Using mock data instead of Supabase
+  setProducts(mockProducts);
+  
+  /* Original Supabase code - commented out
+  let query = supabase.from('products').select('*');
 
-    if (selectedCategory) {
-      query = query.eq('category_id', selectedCategory);
-    }
+  if (selectedCategory) {
+    query = query.eq('category_id', selectedCategory);
+  }
 
-    const { data } = await query.order('created_at', { ascending: false });
+  const { data } = await query.order('created_at', { ascending: false });
 
-    if (data) {
-      setProducts(data);
-    }
-  };
+  if (data) {
+    setProducts(data);
+  }
+  */
+};
 
   const handleAddToCart = async (product: Product) => {
     await addToCart(product);
@@ -97,17 +104,14 @@ export default function ShopPage({ onNavigate }: ShopPageProps) {
                   onClick={() => onNavigate('product', product.slug)}
                   className="aspect-square bg-gray-100 mb-4 overflow-hidden cursor-pointer"
                 >
-                  {product.image_url ? (
+                  
                     <img
-                      src={product.image_url}
+                      src={getProductImage(product.slug)}
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span className="text-sm">No image</span>
-                    </div>
-                  )}
+                  
+                  
                 </div>
                 <h3
                   onClick={() => onNavigate('product', product.slug)}
